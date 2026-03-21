@@ -1,68 +1,59 @@
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory
-import os, subprocess, datetime, json
+from flask import Flask, render_template, request, redirect, url_for
+import subprocess, os, datetime
 from config import *
 
 app = Flask(__name__)
+history = []
 
-# Historial de descargas
-HISTORY_FILE = os.path.join(LOG_FOLDER, "history.json")
-if os.path.exists(HISTORY_FILE):
-    with open(HISTORY_FILE, "r") as f:
-        history = json.load(f)
-else:
-    history = []
+def download_video(url):
+    """Descarga el video usando yt-dlp en mp4"""
+    temp_path = os.path.join(DOWNLOAD_FOLDER, "temp.mp4")
+    cmd = ["yt-dlp", "-f", "best[ext=mp4]", url, "-o", temp_path]
+    subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return temp_path
 
-# 🚀 Guardar historial
-def save_history():
-    with open(HISTORY_FILE, "w") as f:
-        json.dump(history, f, indent=2)
+def move_to_gallery(file_path):
+    """Copia el archivo a la galería de Android y actualiza media scan"""
+    filename = os.path.basename(file_path)
+    gallery_path = os.path.join(GALLERY_FOLDER, filename)
+    subprocess.run(["cp", file_path, gallery_path])
+    subprocess.run([
+        "am", "broadcast",
+        "-a", "android.intent.action.MEDIA_SCANNER_SCAN_FILE",
+        "-d", f"file://{gallery_path}"
+    ])
+    return gallery_path
 
-# 🏠 HOME
+# ================== ROUTES ==================
 @app.route('/')
 def index():
-    return render_template("index.html", history=history)
+    return render_template("index.html")
 
-# 🔗 DESCARGAR POR LINK
-@app.route('/link', methods=['GET','POST'])
-def link_page():
-    if request.method == 'POST':
-        url = request.form.get("video_url")
-        custom_name = request.form.get("custom_name", "")
-        
-        filename = custom_name.strip() if custom_name else "%(title)s.%(ext)s"
-        output_path = os.path.join(DOWNLOAD_FOLDER, filename)
+@app.route('/link', methods=["POST"])
+def link_download():
+    url = request.form.get("video_url")
+    if not url:
+        return "❌ Ingresa un link válido"
 
-        try:
-            subprocess.run([
-                "yt-dlp",
-                "-f", "best[ext=mp4]",
-                "-o", output_path,
-                url
-            ], check=True)
-        except subprocess.CalledProcessError:
-            return "❌ Error descargando video"
+    # Descargar
+    temp_video = download_video(url)
 
-        entry = {
-            "url": url,
-            "name": filename,
-            "date": str(datetime.datetime.now())
-        }
-        history.append(entry)
-        save_history()
-        return redirect(url_for('history_page'))
+    # Guardar en galería
+    gallery_video = move_to_gallery(temp_video)
 
-    return render_template("link.html")
+    # Guardar en historial
+    history.append({
+        "name": os.path.basename(gallery_video),
+        "url": url,
+        "date": str(datetime.datetime.now())
+    })
 
-# 📜 HISTORIAL
+    return redirect(url_for("history_page"))
+
 @app.route('/history')
 def history_page():
     return render_template("history.html", videos=history)
 
-# 📥 DESCARGAR ARCHIVO LOCAL
-@app.route('/download/<path:filename>')
-def download_file(filename):
-    return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
-
-# 🚀 INICIO
+# ===========================================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=PORT, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
