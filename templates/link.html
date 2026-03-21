@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Descargar Video</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'components/navbar.html' %}
+
+<h1>Descargar Video</h1>
+<form method="POST">
+  <label>URL del video:</label><br>
+  <input type="text" name="video_url" required><br><br>
+  
+  <label>Nombre opcional:</label><br>
+  <input type="text" name="custom_name"><br><br>
+  
+  <button type="submit">Descargar</button>
+</form>
+
+{% include 'components/footer.html' %}
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
