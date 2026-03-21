@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Historial de Descargas</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'components/navbar.html' %}
+
+<h1>Historial de Descargas</h1>
+<table>
+  <tr>
+    <th>Nombre</th>
+    <th>URL</th>
+    <th>Fecha</th>
+    <th>Descargar</th>
+  </tr>
+  {% for video in videos %}
+  <tr>
+    <td>{{ video.name }}</td>
+    <td><a href="{{ video.url }}" target="_blank">Abrir link</a></td>
+    <td>{{ video.date }}</td>
+    <td><a href="{{ url_for('download_file', filename=video.name) }}">Descargar</a></td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% include 'components/footer.html' %}
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
