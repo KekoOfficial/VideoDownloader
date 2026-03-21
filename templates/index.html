@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Panel de Descargas</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% include 'components/navbar.html' %}
+
+<h1>Bienvenido al Panel de Descargas</h1>
+
+<h2>Últimos videos descargados</h2>
+<ul>
+  {% for video in history[-5:] %}
+    <li>{{ video.name }} - <a href="{{ url_for('download_file', filename=video.name) }}">Descargar</a></li>
+  {% endfor %}
+</ul>
+
+{% include 'components/footer.html' %}
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
