@@ -1,59 +1,43 @@
 from flask import Flask, render_template, request, redirect, url_for
-import subprocess, os, datetime
-from config import *
+import os
 
 app = Flask(__name__)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DOWNLOADS = os.path.join(BASE_DIR, "downloads")
+
+os.makedirs(DOWNLOADS, exist_ok=True)
+
 history = []
 
-def download_video(url):
-    """Descarga el video usando yt-dlp en mp4"""
-    temp_path = os.path.join(DOWNLOAD_FOLDER, "temp.mp4")
-    cmd = ["yt-dlp", "-f", "best[ext=mp4]", url, "-o", temp_path]
-    subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    return temp_path
-
-def move_to_gallery(file_path):
-    """Copia el archivo a la galería de Android y actualiza media scan"""
-    filename = os.path.basename(file_path)
-    gallery_path = os.path.join(GALLERY_FOLDER, filename)
-    subprocess.run(["cp", file_path, gallery_path])
-    subprocess.run([
-        "am", "broadcast",
-        "-a", "android.intent.action.MEDIA_SCANNER_SCAN_FILE",
-        "-d", f"file://{gallery_path}"
-    ])
-    return gallery_path
-
-# ================== ROUTES ==================
-@app.route('/')
+@app.route("/")
 def index():
     return render_template("index.html")
 
-@app.route('/link', methods=["POST"])
-def link_download():
-    url = request.form.get("video_url")
+@app.route("/link", methods=["POST"])
+def link():
+    url = request.form.get("url")
+
     if not url:
-        return "❌ Ingresa un link válido"
+        return redirect(url_for("index"))
 
-    # Descargar
-    temp_video = download_video(url)
+    output_path = os.path.join(DOWNLOADS, "video.mp4")
 
-    # Guardar en galería
-    gallery_video = move_to_gallery(temp_video)
+    # 🔥 Descargar video con nombre fijo
+    command = f'yt-dlp -o "{output_path}" "{url}"'
+    os.system(command)
 
-    # Guardar en historial
-    history.append({
-        "name": os.path.basename(gallery_video),
-        "url": url,
-        "date": str(datetime.datetime.now())
-    })
+    if os.path.exists(output_path):
+        history.append(output_path)
+        print("✅ Video descargado correctamente")
+    else:
+        print("❌ Error: video no encontrado")
 
-    return redirect(url_for("history_page"))
+    return redirect(url_for("index"))
 
-@app.route('/history')
-def history_page():
-    return render_template("history.html", videos=history)
+@app.route("/history")
+def show_history():
+    return render_template("history.html", history=history)
 
-# ===========================================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
