@@ -21,17 +21,13 @@ def link():
     if not url:
         return redirect(url_for("index"))
 
-    output_path = os.path.join(DOWNLOADS, "video.mp4")
+    output_path = os.path.join(DOWNLOADS, "video_%(title)s.%(ext)s")
 
-    # 🔥 Descargar video con nombre fijo
+    # 🔥 descarga segura
     command = f'yt-dlp -o "{output_path}" "{url}"'
     os.system(command)
 
-    if os.path.exists(output_path):
-        history.append(output_path)
-        print("✅ Video descargado correctamente")
-    else:
-        print("❌ Error: video no encontrado")
+    history.append(url)
 
     return redirect(url_for("index"))
 
