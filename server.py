@@ -1,12 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
-import os
+from core.downloader import download_video
 
 app = Flask(__name__)
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DOWNLOADS = os.path.join(BASE_DIR, "downloads")
-
-os.makedirs(DOWNLOADS, exist_ok=True)
 
 history = []
 
@@ -18,16 +13,9 @@ def index():
 def link():
     url = request.form.get("url")
 
-    if not url:
-        return redirect(url_for("index"))
-
-    output_path = os.path.join(DOWNLOADS, "video_%(title)s.%(ext)s")
-
-    # 🔥 descarga segura
-    command = f'yt-dlp -o "{output_path}" "{url}"'
-    os.system(command)
-
-    history.append(url)
+    if url:
+        download_video(url)
+        history.append(url)
 
     return redirect(url_for("index"))
 
