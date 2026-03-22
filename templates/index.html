@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Khasam Downloader</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<meta charset="UTF-8">
+<title>VideoDownloader</title>
+<link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+<h1>VideoDownloader Web</h1>
+<form method="POST">
+    <input type="text" name="url" placeholder="Ingresa URL del video">
+    <button type="submit">Agregar a la cola</button>
+    <button name="start" value="1">Iniciar descargas</button>
+</form>
 
-    <h1>⚡ Khasam Downloader</h1>
-
-    <form action="/link" method="post">
-        <input type="text" name="url" placeholder="Pega el link del video" required>
-        <button type="submit">Descargar</button>
-    </form>
-
-    <br><br>
-
-    <a href="/history">📜 Ver Historial</a>
-
+<h2>Cola de descargas:</h2>
+<ul>
+{% for url in queue %}
+    <li>{{ url }}</li>
+{% endfor %}
+</ul>
 </body>
 </html>
