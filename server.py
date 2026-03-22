@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for
 from core.downloader import download_video
 
 app = Flask(__name__)
-
 history = []
 
 @app.route("/")
@@ -12,11 +11,9 @@ def index():
 @app.route("/link", methods=["POST"])
 def link():
     url = request.form.get("url")
-
     if url:
-        download_video(url)
+        download_video(url)  # descarga + galería
         history.append(url)
-
     return redirect(url_for("index"))
 
 @app.route("/history")
