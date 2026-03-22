@@ -1,17 +1,21 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Historial de Descargas</title>
+    <title>Historial</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Historial de Descargas</h1>
+
+    <h1>📂 Historial</h1>
+
     <ul>
-        {% for video in videos %}
-        <li>{{ video.name }} - {{ video.date }} - <a href="/downloads/{{ video.name }}">Abrir</a></li>
+        {% for item in history %}
+            <li>{{ item }}</li>
         {% endfor %}
     </ul>
-    <a href="{{ url_for('index') }}">Volver</a>
+
+    <br>
+    <a href="/">⬅ Volver</a>
+
 </body>
 </html>
